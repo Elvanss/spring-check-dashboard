@@ -9,9 +9,14 @@ class SpringPsiChangeListener : PsiTreeChangeListener {
 
     companion object {
         private val SPRING_ANNOTATIONS = setOf(
-            "RestController", "Controller", "RequestMapping",
-            "GetMapping", "PostMapping", "PutMapping",
-            "DeleteMapping", "PatchMapping"
+            "RestController",
+            "Controller",
+            "RequestMapping",
+            "GetMapping",
+            "PostMapping",
+            "PutMapping",
+            "DeleteMapping",
+            "PatchMapping"
         )
     }
 

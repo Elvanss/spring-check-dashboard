@@ -4,23 +4,50 @@ import com.github.elvanss.springcheckdashboard.model.ControllerInfo
 import com.github.elvanss.springcheckdashboard.model.EndpointInfo
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiShortNamesCache
+import com.intellij.psi.search.searches.AnnotatedElementsSearch
 
 class SpringEndpointDetector {
 
     fun detectControllersForModule(module: Module): List<ControllerInfo> {
-        val scope = GlobalSearchScope.moduleScope(module)
-        val psiCache = PsiShortNamesCache.getInstance(module.project)
-        val controllers = mutableListOf<ControllerInfo>()
+        val project = module.project
+        val moduleScope = GlobalSearchScope.moduleScope(module)
+        val allScope = GlobalSearchScope.allScope(project) // Để tìm annotation trong thư viện
 
-        val allClasses = psiCache.allClassNames.flatMap { className ->
-            psiCache.getClassesByName(className, scope).toList()
+        val controllers = mutableListOf<ControllerInfo>()
+        val javaPsiFacade = JavaPsiFacade.getInstance(project)
+
+        // Tìm annotation class trong thư viện
+        val restControllerAnno = javaPsiFacade.findClass(
+            "org.springframework.web.bind.annotation.RestController",
+            allScope
+        )
+        val controllerAnno = javaPsiFacade.findClass(
+            "org.springframework.stereotype.Controller",
+            allScope
+        )
+
+        // Tìm các class trong module có gắn annotation này
+        val annotatedClasses = mutableListOf<PsiClass>()
+        if (restControllerAnno != null) {
+            annotatedClasses += AnnotatedElementsSearch
+                .searchPsiClasses(restControllerAnno, moduleScope)
+                .findAll()
+        }
+        if (controllerAnno != null) {
+            annotatedClasses += AnnotatedElementsSearch
+                .searchPsiClasses(controllerAnno, moduleScope)
+                .findAll()
         }
 
+        val allClasses = annotatedClasses.distinct()
+
+        // Giữ nguyên toàn bộ logic xử lý gốc
         for (cls in allClasses) {
             if (isController(cls)) {
                 val basePath = extractClassLevelPath(cls) ?: ""
@@ -36,39 +63,41 @@ class SpringEndpointDetector {
                 }
             }
         }
+
         return controllers
     }
 
-    // NOTE: single module version
+
+
     @Suppress("unused")
-    fun detectControllers(project: Project): List<ControllerInfo> {
-        val scope = GlobalSearchScope.projectScope(project)
-        val psiCache = PsiShortNamesCache.getInstance(project)
-
-        val controllers = mutableListOf<ControllerInfo>()
-
-        val allClasses = psiCache.allClassNames.flatMap { className ->
-            psiCache.getClassesByName(className, scope).toList()
-        }
-
-        for (cls in allClasses) {
-            if (isController(cls)) {
-                val basePath = extractClassLevelPath(cls) ?: ""
-                val methods = cls.methods.mapNotNull { extractMethodInfo(it, basePath) }
-                if (methods.isNotEmpty()) {
-                    controllers.add(
-                        ControllerInfo(
-                            moduleName = detectModuleName(cls),
-                            controllerName = cls.name ?: "UnknownController",
-                            methods = methods
-                        )
-                    )
-                }
-            }
-        }
-
-        return controllers
-    }
+//    fun detectControllers(project: Project): List<ControllerInfo> {
+//        val scope = GlobalSearchScope.projectScope(project)
+//        val psiCache = PsiShortNamesCache.getInstance(project)
+//
+//        val controllers = mutableListOf<ControllerInfo>()
+//
+//        val allClasses = psiCache.allClassNames.flatMap { className ->
+//            psiCache.getClassesByName(className, scope).toList()
+//        }
+//
+//        for (cls in allClasses) {
+//            if (isController(cls)) {
+//                val basePath = extractClassLevelPath(cls) ?: ""
+//                val methods = cls.methods.mapNotNull { extractMethodInfo(it, basePath) }
+//                if (methods.isNotEmpty()) {
+//                    controllers.add(
+//                        ControllerInfo(
+//                            moduleName = detectModuleName(cls),
+//                            controllerName = cls.name ?: "UnknownController",
+//                            methods = methods
+//                        )
+//                    )
+//                }
+//            }
+//        }
+//
+//        return controllers
+//    }
 
     private fun isController(cls: PsiClass): Boolean {
         val annos = cls.annotations.mapNotNull { it.qualifiedName }
@@ -122,7 +151,11 @@ class SpringEndpointDetector {
 
     private fun extractRequestMappingMethod(anno: PsiAnnotation): String? {
         val methodAttr = anno.findAttributeValue("method")?.text ?: return null
-        return methodAttr.substringAfter("RequestMethod.").replace("}", "")
+        return methodAttr
+            .removePrefix("{")
+            .removeSuffix("}")
+            .split(",").joinToString(",") { it.trim().substringAfter("RequestMethod.") }
+            .ifBlank { "REQUEST" }
     }
 
     private fun combinePaths(base: String?, sub: String?): String {

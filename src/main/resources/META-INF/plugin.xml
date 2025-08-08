@@ -5,11 +5,15 @@
     <vendor>elvanss</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.elvanss.springcheckdashboard.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <toolWindow
+                factoryClass="com.github.elvanss.springcheckdashboard.toolWindow.SpringEndpointToolWindowFactory"
+                id="Spring Endpoints"/>
         <postStartupActivity implementation="com.github.elvanss.springcheckdashboard.startup.MyProjectActivity" />
     </extensions>
 </idea-plugin>

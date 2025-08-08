@@ -2,6 +2,7 @@ package com.github.elvanss.springcheckdashboard.toolWindow
 
 import com.github.elvanss.springcheckdashboard.model.EndpointInfo
 import com.github.elvanss.springcheckdashboard.services.SpringEndpointDetector
+import com.github.elvanss.springcheckdashboard.toolWindow.component.EndpointTreeCellRerender
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -24,6 +25,7 @@ class SpringEndpointToolWindowFactory : ToolWindowFactory {
         val rootNode = DefaultMutableTreeNode("Spring Endpoints")
         val treeModel = DefaultTreeModel(rootNode)
         val tree = Tree(treeModel)
+        tree.cellRenderer = EndpointTreeCellRerender("/icons/api-icon.svg")
         val scrollPane: JComponent = JScrollPane(tree)
 
         val content = contentFactory.createContent(scrollPane, "", false)
@@ -46,7 +48,6 @@ class SpringEndpointToolWindowFactory : ToolWindowFactory {
         DumbService.getInstance(project).runWhenSmart {
             val detector = SpringEndpointDetector()
             val rootNode = DefaultMutableTreeNode("Spring Endpoints")
-
             rootNode.removeAllChildren()
 
             val modules = ModuleManager.getInstance(project).modules

@@ -7,8 +7,8 @@ import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
 
-class EndpointTreeCellRerender : DefaultTreeCellRenderer() {
-    private val apiIcon: Icon = IconManager.getInstance().getIcon("/icons/api-icon.svg", javaClass.classLoader)
+class EndpointTreeCellRerender(iconPath: String) : DefaultTreeCellRenderer() {
+    private val apiIcon: Icon = IconManager.getInstance().getIcon(iconPath, javaClass.classLoader)
 
     override fun getTreeCellRendererComponent(
         tree: JTree?,

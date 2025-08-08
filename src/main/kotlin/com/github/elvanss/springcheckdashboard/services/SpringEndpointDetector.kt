@@ -151,11 +151,7 @@ class SpringEndpointDetector {
 
     private fun extractRequestMappingMethod(anno: PsiAnnotation): String? {
         val methodAttr = anno.findAttributeValue("method")?.text ?: return null
-        return methodAttr
-            .removePrefix("{")
-            .removeSuffix("}")
-            .split(",").joinToString(",") { it.trim().substringAfter("RequestMethod.") }
-            .ifBlank { "REQUEST" }
+        return methodAttr.substringAfter("RequestMethod.").replace("", "")
     }
 
     private fun combinePaths(base: String?, sub: String?): String {

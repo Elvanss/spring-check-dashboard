@@ -2,6 +2,7 @@ package com.github.elvanss.springcheckdashboard.services
 
 import com.github.elvanss.springcheckdashboard.model.ControllerInfo
 import com.github.elvanss.springcheckdashboard.model.EndpointInfo
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiClass
@@ -11,13 +12,41 @@ import com.intellij.psi.search.PsiShortNamesCache
 
 class SpringEndpointDetector {
 
+    fun detectControllersForModule(module: Module): List<ControllerInfo> {
+        val scope = GlobalSearchScope.moduleScope(module)
+        val psiCache = PsiShortNamesCache.getInstance(module.project)
+        val controllers = mutableListOf<ControllerInfo>()
+
+        val allClasses = psiCache.allClassNames.flatMap { className ->
+            psiCache.getClassesByName(className, scope).toList()
+        }
+
+        for (cls in allClasses) {
+            if (isController(cls)) {
+                val basePath = extractClassLevelPath(cls) ?: ""
+                val methods = cls.methods.mapNotNull { extractMethodInfo(it, basePath) }
+                if (methods.isNotEmpty()) {
+                    controllers.add(
+                        ControllerInfo(
+                            moduleName = module.name,
+                            controllerName = cls.name ?: "UnknownController",
+                            methods = methods
+                        )
+                    )
+                }
+            }
+        }
+        return controllers
+    }
+
+    // NOTE: single module version
+    @Suppress("unused")
     fun detectControllers(project: Project): List<ControllerInfo> {
         val scope = GlobalSearchScope.projectScope(project)
         val psiCache = PsiShortNamesCache.getInstance(project)
 
         val controllers = mutableListOf<ControllerInfo>()
 
-        // Lấy tất cả class trong project
         val allClasses = psiCache.allClassNames.flatMap { className ->
             psiCache.getClassesByName(className, scope).toList()
         }
@@ -78,7 +107,8 @@ class SpringEndpointDetector {
                 return EndpointInfo(
                     path = path,
                     httpMethod = httpMethod,
-                    methodName = method.name
+                    methodName = method.name,
+                    targetElement = method
                 )
             }
         }

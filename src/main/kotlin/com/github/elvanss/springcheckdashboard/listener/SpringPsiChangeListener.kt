@@ -32,14 +32,13 @@ class SpringPsiChangeListener : PsiTreeChangeListener {
     private fun scanFileIfNeeded(event: PsiTreeChangeEvent) {
         val file = event.file as? PsiJavaFile ?: return
 
-        // Kiểm tra xem file có chứa annotation Spring không
+        // Check @RestController or @Controller annotations in the file
         if (file.text.contains("@RestController") || file.text.contains("@Controller")) {
             val project = file.project
             val endpointService = project.service<SpringEndpointService>()
 
             val endpoints = mutableListOf<String>()
 
-            // Lặp qua tất cả các phương thức trong file
             PsiTreeUtil.findChildrenOfType(file, PsiMethod::class.java).forEach { method ->
                 method.modifierList.annotations.forEach { annotation ->
                     val annotationName = annotation.qualifiedName?.substringAfterLast(".") ?: return@forEach
@@ -50,7 +49,6 @@ class SpringPsiChangeListener : PsiTreeChangeListener {
                 }
             }
 
-            // Cập nhật cache endpoints
             endpointService.updateEndpoints(file.virtualFile.path, endpoints)
         }
     }

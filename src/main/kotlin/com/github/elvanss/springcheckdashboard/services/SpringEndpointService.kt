@@ -1,10 +1,9 @@
 package com.github.elvanss.springcheckdashboard.services
 
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.project.Project
 
 @Service(Service.Level.PROJECT)
-class SpringEndpointService(private val project: Project) {
+class SpringEndpointService() {
 
     private val endpointsByFile = mutableMapOf<String, List<String>>()
 

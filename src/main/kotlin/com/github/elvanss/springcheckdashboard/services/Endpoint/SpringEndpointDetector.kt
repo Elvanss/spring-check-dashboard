@@ -1,15 +1,13 @@
-package com.github.elvanss.springcheckdashboard.services
+package com.github.elvanss.springcheckdashboard.services.Endpoint
 
-import com.github.elvanss.springcheckdashboard.model.ControllerInfo
-import com.github.elvanss.springcheckdashboard.model.EndpointInfo
+import com.github.elvanss.springcheckdashboard.model.Endpoint.ControllerInfo
+import com.github.elvanss.springcheckdashboard.model.Endpoint.EndpointInfo
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 
 class SpringEndpointDetector {

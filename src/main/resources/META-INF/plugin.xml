@@ -12,8 +12,8 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow
-                factoryClass="com.github.elvanss.springcheckdashboard.toolWindow.SpringEndpointToolWindowFactory"
-                id="Spring Endpoints"
+                factoryClass="com.github.elvanss.springcheckdashboard.toolWindow.SpringDashboardToolWindowFactory"
+                id="Spring Dashboard"
                 icon="/icons/spring-endpoint-icon.svg"/>
         <postStartupActivity implementation="com.github.elvanss.springcheckdashboard.startup.MyProjectActivity" />
     </extensions>

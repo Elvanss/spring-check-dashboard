@@ -1,4 +1,4 @@
-package com.github.elvanss.springcheckdashboard.services
+package com.github.elvanss.springcheckdashboard.services.Endpoint
 
 import com.intellij.openapi.components.Service
 

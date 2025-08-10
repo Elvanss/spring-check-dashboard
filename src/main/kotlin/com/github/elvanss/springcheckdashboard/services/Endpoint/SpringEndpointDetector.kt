@@ -30,11 +30,9 @@ class SpringEndpointDetector {
         val allScope = GlobalSearchScope.allScope(project)
         val facade = JavaPsiFacade.getInstance(project)
 
-        // Tìm class annotation trong classpath
         val restCtrlAnno = facade.findClass(REST_CONTROLLER, allScope)
         val ctrlAnno = facade.findClass(CONTROLLER, allScope)
 
-        // Lấy tất cả class (Java + Kotlin light classes) có @RestController/@Controller trong module
         val psiClasses = buildList<PsiClass> {
             if (restCtrlAnno != null) {
                 addAll(AnnotatedElementsSearch.searchPsiClasses(restCtrlAnno, moduleScope).findAll())
@@ -66,8 +64,6 @@ class SpringEndpointDetector {
 
         return results
     }
-
-    /* --------- phần còn lại giữ nguyên như bản UAST đã fix UastLiteralUtils --------- */
 
     private fun endpointsFromMethod(uMethod: UMethod, classPrefixes: List<String>): List<EndpointInfo> {
         val out = mutableListOf<EndpointInfo>()

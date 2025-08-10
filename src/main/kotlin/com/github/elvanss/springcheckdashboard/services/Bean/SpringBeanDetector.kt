@@ -30,7 +30,6 @@ class SpringBeanDetector {
         val allScope = GlobalSearchScope.allScope(project)
         val facade = JavaPsiFacade.getInstance(project)
 
-        // 1) Tìm tất cả PsiClass trong module có 1 trong các bean annotations
         val classes: List<PsiClass> = buildList {
             BEAN_ANNOS.forEach { fqn ->
                 val anno = facade.findClass(fqn, allScope) ?: return@forEach
@@ -40,11 +39,9 @@ class SpringBeanDetector {
 
         val out = mutableListOf<BeanInfo>()
 
-        // 2) Cho mỗi class: tạo BeanInfo cho chính class + nếu là @Configuration thì quét @Bean methods (UAST)
         classes.forEach { psiClass ->
             val uClass = psiClass.toUElement(UClass::class.java)
 
-            // 2.1 Bean cho chính class (Component/Service/Repository/Controller/RestController/Configuration)
             val beanType = firstMatchingAnnotationShortName(psiClass, BEAN_ANNOS)
             out += BeanInfo(
                 beanName = psiClass.name ?: "UnknownBean",
@@ -52,7 +49,6 @@ class SpringBeanDetector {
                 targetElement = psiClass.navigationElement
             )
 
-            // 2.2 Nếu class là @Configuration → lấy @Bean methods (qua UAST để hỗ trợ Kotlin)
             val isConfiguration = hasAnnotation(psiClass, CONFIGURATION) ||
                     (uClass?.uAnnotations?.any { it.qualifiedName == CONFIGURATION } == true)
 

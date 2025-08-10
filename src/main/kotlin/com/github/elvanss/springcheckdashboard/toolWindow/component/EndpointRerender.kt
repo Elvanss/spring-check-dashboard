@@ -27,7 +27,6 @@ class EndpointRerender {
         /** Renderer: gắn icon cho endpoint; controller/module giữ icon mặc định (hoặc đặt nhẹ) */
         private class EndpointTreeRenderer : ColoredTreeCellRenderer() {
             private val endpointIcon: Icon by lazy {
-                // icon custom từ resources; fallback sang icon mặc định của Swing nếu thiếu
                 try {
                     IconLoader.getIcon("/icons/api-icon.svg", javaClass)
                 } catch (_: Throwable) {
@@ -35,11 +34,9 @@ class EndpointRerender {
                 }
             }
             private val moduleIcon: Icon? by lazy {
-                // có thể dùng AllIcons nếu muốn: com.intellij.icons.AllIcons.Nodes.Module
                 UIManager.getIcon("Tree.closedIcon")
             }
             private val controllerIcon: Icon? by lazy {
-                // có thể dùng AllIcons nếu muốn: com.intellij.icons.AllIcons.Nodes.Class
                 UIManager.getIcon("Tree.closedIcon")
             }
             private val rootIcon: Icon? by lazy {
@@ -58,7 +55,6 @@ class EndpointRerender {
                 val node = value as? DefaultMutableTreeNode
                 val text = node?.userObject?.toString().orEmpty()
 
-                // Xác định depth: root=1, module=2, controller=3, endpoint leaf=4
                 val depth = node?.path?.size ?: 0
                 val uo = node?.userObject
 
@@ -91,7 +87,6 @@ class EndpointRerender {
             val rootNode = DefaultMutableTreeNode("Spring Endpoints")
             val app = ApplicationManager.getApplication()
 
-            // Gắn renderer (làm 1 lần là đủ; gắn lặp cũng không sao)
             tree.cellRenderer = EndpointTreeRenderer()
 
             app.executeOnPooledThread {
@@ -117,7 +112,6 @@ class EndpointRerender {
                     moduleNodes.forEach { rootNode.add(it) }
                     model.setRoot(rootNode)
                     expandAll(tree)
-                    // Force redraw để đảm bảo icon render ngay
                     (tree as? JComponent)?.revalidate()
                     (tree as? JComponent)?.repaint()
                 }

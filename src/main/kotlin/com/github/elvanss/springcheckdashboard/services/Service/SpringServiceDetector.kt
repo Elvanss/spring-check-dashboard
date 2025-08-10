@@ -21,7 +21,6 @@ class SpringServiceDetector {
         val moduleScope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)
         val facade = JavaPsiFacade.getInstance(project)
 
-        // tìm class @SpringBootApplication trong module
         val candidates: Collection<PsiClass> = buildList {
             val anno = facade.findClass(SPRING_BOOT_ANNOTATION, allScope)
             if (anno != null) {
@@ -47,7 +46,6 @@ class SpringServiceDetector {
             return out
         }
 
-        // Fallback: tìm main method + SpringApplication.run(...)
         val mains = findMainClassesInModule(module)
         mains.forEach { cls ->
             val fqn = cls.qualifiedName ?: return@forEach
@@ -70,11 +68,9 @@ class SpringServiceDetector {
         val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, /*includeTestScope=*/false)
         val cache = PsiShortNamesCache.getInstance(project)
 
-        // Lọc theo vài “hint” tên phổ biến để tránh quét toàn bộ index
         val nameHints = setOf("Application", "Main", "App", "Server")
 
-        val results = LinkedHashSet<PsiClass>() // giữ thứ tự + unique theo identity
-        // Duyệt tất cả tên class trong index, nhưng chỉ lấy những tên khớp hint
+        val results = LinkedHashSet<PsiClass>()
         for (name in cache.allClassNames) {
             if (nameHints.any { name.endsWith(it) }) {
                 val classes = cache.getClassesByName(name, scope)
@@ -97,7 +93,6 @@ class SpringServiceDetector {
         val project = module.project
         val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)
 
-        // application.properties
         FilenameIndex.getVirtualFilesByName(project, "application.properties", scope).firstOrNull()?.let { vf ->
             try {
                 VfsUtilCore.loadText(vf).lineSequence().forEach { line ->
@@ -109,13 +104,11 @@ class SpringServiceDetector {
             } catch (_: Throwable) {}
         }
 
-        // application.yml / application.yaml
         val yaml = FilenameIndex.getVirtualFilesByName(project, "application.yml", scope).firstOrNull()
             ?: FilenameIndex.getVirtualFilesByName(project, "application.yaml", scope).firstOrNull()
         if (yaml != null) {
             try {
                 val text = VfsUtilCore.loadText(yaml)
-                // bắt dạng: server:\n  port: 8081  (rất giản lược)
                 val rx = Regex("""(?s)server\s*:\s*.*?port\s*:\s*(\d{2,5})""")
                 val m = rx.find(text)
                 if (m != null) return m.groupValues[1].toInt()

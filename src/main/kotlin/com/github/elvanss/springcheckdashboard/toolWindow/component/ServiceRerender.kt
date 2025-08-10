@@ -20,13 +20,11 @@ import javax.swing.tree.DefaultTreeModel
 class ServiceRerender {
     companion object {
 
-        /** Node wrapper hiển thị trong Tree */
         data class DisplayService(val info: ServiceInfo, val running: Boolean) {
             override fun toString(): String = "${info.serviceName}::[${info.port ?: "-"}]"
             fun getServiceInfo(): ServiceInfo = info
         }
 
-        /** Kiểm tra service đang chạy dựa vào Run Tool Window (displayName = configName) */
         private fun isRunning(project: Project, cfgName: String): Boolean {
             val mgr = RunContentManager.getInstance(project)
             val desc = mgr.allDescriptors.firstOrNull { it.displayName == cfgName }
@@ -34,7 +32,6 @@ class ServiceRerender {
             return ph != null && !ph.isProcessTerminated && !ph.isProcessTerminating
         }
 
-        /** Renderer: icon ▶ nếu chưa chạy, ⏹ nếu đang chạy; icon cho root/module */
         private class ServiceTreeRenderer : ColoredTreeCellRenderer() {
             private val iconRoot: Icon? by lazy { UIManager.getIcon("Tree.openIcon") }
             private val iconModule: Icon? by lazy { UIManager.getIcon("Tree.closedIcon") }
@@ -71,13 +68,11 @@ class ServiceRerender {
             }
         }
 
-        /** Load services vào Tree (giống style Beans/Endpoints) */
         fun loadServices(project: Project, model: DefaultTreeModel, tree: Tree) {
             val detector = SpringServiceDetector()
             val rootNode = DefaultMutableTreeNode("Services")
             val app = ApplicationManager.getApplication()
 
-            // gắn renderer (safe nếu gọi nhiều lần)
             tree.cellRenderer = ServiceTreeRenderer()
 
             app.executeOnPooledThread {

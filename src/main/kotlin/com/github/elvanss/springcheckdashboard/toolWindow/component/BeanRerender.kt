@@ -33,7 +33,6 @@ class BeanRerender {
                 null
             }
 
-            // Icons (đặt ở /resources/icons/)
             private val iconRoot: Icon? by lazy { UIManager.getIcon("Tree.openIcon") }
             private val iconModule: Icon? by lazy { UIManager.getIcon("Tree.closedIcon") }
 
@@ -93,7 +92,6 @@ class BeanRerender {
             val rootNode = DefaultMutableTreeNode("Spring Beans")
             val app = ApplicationManager.getApplication()
 
-            // Gắn renderer (1 lần)
             tree.cellRenderer = BeanTreeRenderer()
 
             app.executeOnPooledThread {

@@ -1,0 +1,7 @@
+package com.github.elvanss.springcheckdashboard.model.Endpoint
+
+data class ControllerInfo (
+    val moduleName: String,
+    val controllerName: String,
+    val methods: List<EndpointInfo>
+)

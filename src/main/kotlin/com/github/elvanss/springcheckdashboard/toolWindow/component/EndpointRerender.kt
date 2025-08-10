@@ -6,23 +6,93 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
+import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.openapi.util.IconLoader
+import javax.swing.Icon
+import javax.swing.JComponent
 import javax.swing.SwingUtilities
+import javax.swing.UIManager
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
 
 class EndpointRerender {
     companion object {
 
-        /** Wrapper để hiển thị text đẹp mà vẫn giữ EndpointInfo trong node */
+        /** Wrapper để hiển thị text đẹp mà vẫn giữ EndpointInfo */
         private data class DisplayEndpoint(val info: EndpointInfo) {
-            override fun toString(): String = "• [${info.httpMethod}] ${info.path}"
+            override fun toString(): String = "[${info.httpMethod}] ${info.path}"
+        }
+
+        /** Renderer: gắn icon cho endpoint; controller/module giữ icon mặc định (hoặc đặt nhẹ) */
+        private class EndpointTreeRenderer : ColoredTreeCellRenderer() {
+            private val endpointIcon: Icon by lazy {
+                // icon custom từ resources; fallback sang icon mặc định của Swing nếu thiếu
+                try {
+                    IconLoader.getIcon("/icons/api-icon.svg", javaClass)
+                } catch (_: Throwable) {
+                    UIManager.getIcon("Tree.leafIcon")
+                }
+            }
+            private val moduleIcon: Icon? by lazy {
+                // có thể dùng AllIcons nếu muốn: com.intellij.icons.AllIcons.Nodes.Module
+                UIManager.getIcon("Tree.closedIcon")
+            }
+            private val controllerIcon: Icon? by lazy {
+                // có thể dùng AllIcons nếu muốn: com.intellij.icons.AllIcons.Nodes.Class
+                UIManager.getIcon("Tree.closedIcon")
+            }
+            private val rootIcon: Icon? by lazy {
+                UIManager.getIcon("Tree.openIcon")
+            }
+
+            override fun customizeCellRenderer(
+                tree: javax.swing.JTree,
+                value: Any,
+                selected: Boolean,
+                expanded: Boolean,
+                leaf: Boolean,
+                row: Int,
+                hasFocus: Boolean
+            ) {
+                val node = value as? DefaultMutableTreeNode
+                val text = node?.userObject?.toString().orEmpty()
+
+                // Xác định depth: root=1, module=2, controller=3, endpoint leaf=4
+                val depth = node?.path?.size ?: 0
+                val uo = node?.userObject
+
+                when {
+                    uo is DisplayEndpoint -> {
+                        icon = endpointIcon
+                        append(text)
+                    }
+                    depth == 1 -> { // Root "Spring Endpoints"
+                        icon = rootIcon
+                        append(text)
+                    }
+                    depth == 2 -> { // Module
+                        icon = moduleIcon
+                        append(text)
+                    }
+                    depth == 3 -> { // Controller
+                        icon = controllerIcon
+                        append(text)
+                    }
+                    else -> {
+                        append(text)
+                    }
+                }
+            }
         }
 
         fun loadEndpoints(project: Project, model: DefaultTreeModel, tree: Tree) {
             val detector = SpringEndpointDetector()
             val rootNode = DefaultMutableTreeNode("Spring Endpoints")
             val app = ApplicationManager.getApplication()
+
+            // Gắn renderer (làm 1 lần là đủ; gắn lặp cũng không sao)
+            tree.cellRenderer = EndpointTreeRenderer()
 
             app.executeOnPooledThread {
                 val moduleNodes = app.runReadAction<List<DefaultMutableTreeNode>> {
@@ -34,9 +104,7 @@ class EndpointRerender {
                             controllers.forEach { ctrl ->
                                 val ctrlNode = DefaultMutableTreeNode(ctrl.controllerName)
                                 ctrl.methods.forEach { ep ->
-                                    // Lưu DisplayEndpoint (bên trong giữ EndpointInfo) để dễ lấy khi navigate
-                                    val leaf = DefaultMutableTreeNode(DisplayEndpoint(ep))
-                                    ctrlNode.add(leaf)
+                                    ctrlNode.add(DefaultMutableTreeNode(DisplayEndpoint(ep)))
                                 }
                                 moduleNode.add(ctrlNode)
                             }
@@ -49,23 +117,22 @@ class EndpointRerender {
                     moduleNodes.forEach { rootNode.add(it) }
                     model.setRoot(rootNode)
                     expandAll(tree)
+                    // Force redraw để đảm bảo icon render ngay
+                    (tree as? JComponent)?.revalidate()
+                    (tree as? JComponent)?.repaint()
                 }
             }
 
             tree.addTreeSelectionListener { e ->
                 val node = e?.path?.lastPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
-                val userObj = node.userObject
-
-                // Hỗ trợ cả trường hợp ai đó set trực tiếp EndpointInfo
-                val endpointInfo: EndpointInfo? = when (userObj) {
-                    is DisplayEndpoint -> userObj.info
-                    is EndpointInfo -> userObj
+                val ep: EndpointInfo? = when (val uo = node.userObject) {
+                    is DisplayEndpoint -> uo.info
+                    is EndpointInfo -> uo
                     else -> null
-                } ?: return@addTreeSelectionListener
-
-                (endpointInfo?.targetElement as? Navigatable)
-                    ?.takeIf { it.canNavigateToSource() }
-                    ?.navigate(true)
+                }
+                ep?.let {
+                    (it.targetElement as? Navigatable)?.takeIf { nav -> nav.canNavigateToSource() }?.navigate(true)
+                }
             }
         }
 

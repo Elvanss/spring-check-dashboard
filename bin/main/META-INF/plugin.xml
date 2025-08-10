@@ -6,11 +6,17 @@
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
+    <depends optional="true" config-file="kotlin-uast.xml">org.jetbrains.kotlin</depends>
+
 
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup
+                id="SpringCheck Notifications"
+                displayType="BALLOON"
+                isLogByDefault="true"/>
         <toolWindow
                 factoryClass="com.github.elvanss.springcheckdashboard.toolWindow.SpringDashboardToolWindowFactory"
                 id="Spring Dashboard"
@@ -18,4 +24,14 @@
                 icon="/icons/spring-endpoint-icon.svg"/>
         <postStartupActivity implementation="com.github.elvanss.springcheckdashboard.startup.MyProjectActivity" />
     </extensions>
+
+    <!-- (Optional) Global actions -->
+    <actions>
+        <action id="SpringCheck.GenerateOpenApi"
+                class="com.github.elvanss.springcheckdashboard.actions.GenerateOpenApiAction"
+                text="Generate OpenAPI (SpringCheck)"
+                description="Generate OpenAPI spec from source"/>
+    </actions>
+
+
 </idea-plugin>

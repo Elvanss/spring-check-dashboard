@@ -17,7 +17,9 @@ class SpringBeanDetector {
         "org.springframework.stereotype.Repository",
         "org.springframework.web.bind.annotation.RestController",
         "org.springframework.stereotype.Controller",
-        "org.springframework.context.annotation.Configuration"
+        "org.springframework.context.annotation.Configuration",
+        "org.springframework.boot.autoconfigure.SpringBootApplication"
+
     )
     private val CONFIGURATION = "org.springframework.context.annotation.Configuration"
     private val BEAN_METHOD = "org.springframework.context.annotation.Bean"

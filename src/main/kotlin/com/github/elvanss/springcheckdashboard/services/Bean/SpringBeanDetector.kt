@@ -6,10 +6,12 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
+import org.jetbrains.uast.*
+import org.jetbrains.uast.visitor.AbstractUastVisitor
 
 class SpringBeanDetector {
 
-    private val beanAnnotations = listOf(
+    private val BEAN_ANNOS = listOf(
         "org.springframework.stereotype.Component",
         "org.springframework.stereotype.Service",
         "org.springframework.stereotype.Repository",
@@ -17,46 +19,65 @@ class SpringBeanDetector {
         "org.springframework.stereotype.Controller",
         "org.springframework.context.annotation.Configuration"
     )
+    private val CONFIGURATION = "org.springframework.context.annotation.Configuration"
+    private val BEAN_METHOD = "org.springframework.context.annotation.Bean"
 
     fun detectBeansForModule(module: Module): List<BeanInfo> {
         val project = module.project
         val moduleScope = GlobalSearchScope.moduleScope(module)
         val allScope = GlobalSearchScope.allScope(project)
+        val facade = JavaPsiFacade.getInstance(project)
 
-        val javaPsiFacade = JavaPsiFacade.getInstance(project)
-        val beans = mutableListOf<BeanInfo>()
+        // 1) Tìm tất cả PsiClass trong module có 1 trong các bean annotations
+        val classes: List<PsiClass> = buildList {
+            BEAN_ANNOS.forEach { fqn ->
+                val anno = facade.findClass(fqn, allScope) ?: return@forEach
+                addAll(AnnotatedElementsSearch.searchPsiClasses(anno, moduleScope).findAll())
+            }
+        }.distinctBy { it.qualifiedName ?: it.name }
 
-        for (annoFqn in beanAnnotations) {
-            val annoClass = javaPsiFacade.findClass(annoFqn, allScope) ?: continue
-            val annotatedClasses: Collection<PsiClass> =
-                AnnotatedElementsSearch.searchPsiClasses(annoClass, moduleScope).findAll()
+        val out = mutableListOf<BeanInfo>()
 
-            for (cls in annotatedClasses) {
-                beans.add(
-                    BeanInfo(
-                        beanName = cls.name ?: "UnknownBean",
-                        beanType = annoFqn.substringAfterLast("."),
-                        targetElement = cls.navigationElement
-                    )
-                )
+        // 2) Cho mỗi class: tạo BeanInfo cho chính class + nếu là @Configuration thì quét @Bean methods (UAST)
+        classes.forEach { psiClass ->
+            val uClass = psiClass.toUElement(UClass::class.java)
 
-                // Nếu là @Configuration thì tìm @Bean methods
-                if (annoFqn == "org.springframework.context.annotation.Configuration") {
-                    for (method in cls.methods) {
-                        if (method.hasAnnotation("org.springframework.context.annotation.Bean")) {
-                            beans.add(
-                                BeanInfo(
-                                    beanName = method.name,
-                                    beanType = "Bean",
-                                    targetElement = method
-                                )
-                            )
-                        }
+            // 2.1 Bean cho chính class (Component/Service/Repository/Controller/RestController/Configuration)
+            val beanType = firstMatchingAnnotationShortName(psiClass, BEAN_ANNOS)
+            out += BeanInfo(
+                beanName = psiClass.name ?: "UnknownBean",
+                beanType = beanType ?: "Bean",
+                targetElement = psiClass.navigationElement
+            )
+
+            // 2.2 Nếu class là @Configuration → lấy @Bean methods (qua UAST để hỗ trợ Kotlin)
+            val isConfiguration = hasAnnotation(psiClass, CONFIGURATION) ||
+                    (uClass?.uAnnotations?.any { it.qualifiedName == CONFIGURATION } == true)
+
+            if (isConfiguration && uClass != null) {
+                uClass.methods.forEach { uMethod ->
+                    val hasBean = uMethod.uAnnotations.any { it.qualifiedName == BEAN_METHOD }
+                    if (hasBean) {
+                        out += BeanInfo(
+                            beanName = uMethod.name,
+                            beanType = "Bean",
+                            targetElement = uMethod.sourcePsi ?: uMethod.javaPsi
+                        )
                     }
                 }
             }
         }
 
-        return beans
+        return out
+    }
+
+    /** Helpers */
+
+    private fun hasAnnotation(psiClass: PsiClass, annoFqn: String): Boolean =
+        psiClass.annotations.any { it.qualifiedName == annoFqn }
+
+    private fun firstMatchingAnnotationShortName(psiClass: PsiClass, annos: List<String>): String? {
+        val qns = psiClass.annotations.mapNotNull { it.qualifiedName }.toSet()
+        return annos.firstOrNull { it in qns }?.substringAfterLast('.')
     }
 }

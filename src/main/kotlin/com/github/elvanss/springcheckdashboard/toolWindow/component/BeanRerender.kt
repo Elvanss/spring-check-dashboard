@@ -14,28 +14,32 @@ import javax.swing.tree.DefaultTreeModel
 class BeanRerender {
 
     companion object {
+
+        private data class DisplayBean(val info: BeanInfo) {
+            override fun toString(): String = "• ${info.beanName} [${info.beanType}]"
+        }
+
         fun loadBeans(project: Project, model: DefaultTreeModel, tree: Tree) {
             val detector = SpringBeanDetector()
             val rootNode = DefaultMutableTreeNode("Spring Beans")
+            val app = ApplicationManager.getApplication()
 
-            ApplicationManager.getApplication().executeOnPooledThread {
-                val moduleNodes = ApplicationManager.getApplication().runReadAction<List<DefaultMutableTreeNode>> {
+            app.executeOnPooledThread {
+                val moduleNodes = app.runReadAction<List<DefaultMutableTreeNode>> {
                     ModuleManager.getInstance(project).modules.mapNotNull { module ->
                         val beans = detector.detectBeansForModule(module)
-                        if (beans.isNotEmpty()) {
-                            val moduleNode = DefaultMutableTreeNode(module.name)
+                        if (beans.isEmpty()) return@mapNotNull null
+
+                        DefaultMutableTreeNode(module.name).also { moduleNode ->
                             beans.forEach { bean ->
-                                val displayNode = DefaultMutableTreeNode(object {
-                                    override fun toString(): String = "• ${bean.beanName} [${bean.beanType}]"
-                                    fun getBeanInfo(): BeanInfo = bean
-                                })
-                                moduleNode.add(displayNode)
+                                moduleNode.add(DefaultMutableTreeNode(DisplayBean(bean)))
                             }
-                            moduleNode
-                        } else null
+                        }
                     }
                 }
+
                 SwingUtilities.invokeLater {
+                    rootNode.removeAllChildren()
                     moduleNodes.forEach { rootNode.add(it) }
                     model.setRoot(rootNode)
                     expandAll(tree)
@@ -44,22 +48,23 @@ class BeanRerender {
 
             tree.addTreeSelectionListener { e ->
                 val node = e?.path?.lastPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
-                val data = node.userObject
-                val beanInfo = when (data) {
-                    is BeanInfo -> data
-                    else -> data?.let {
-                        it::class.members.find { m -> m.name == "getBeanInfo" }?.call(it) as? BeanInfo
-                    }
-                }
-                if (beanInfo != null) {
-                    (beanInfo.targetElement as? Navigatable)?.takeIf { it.canNavigateToSource() }?.navigate(true)
-                }
+                val endpoint = when (val uo = node.userObject) {
+                    is DisplayBean -> uo.info
+                    is BeanInfo -> uo
+                    else -> null
+                } ?: return@addTreeSelectionListener
+
+                (endpoint.targetElement as? Navigatable)
+                    ?.takeIf { it.canNavigateToSource() }
+                    ?.navigate(true)
             }
         }
 
         private fun expandAll(tree: Tree) {
-            for (i in 0 until tree.rowCount) {
+            var i = 0
+            while (i < tree.rowCount) {
                 tree.expandRow(i)
+                i++
             }
         }
     }

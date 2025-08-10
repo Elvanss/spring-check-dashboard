@@ -1,0 +1,3 @@
+<idea-plugin>
+    <depends>org.jetbrains.kotlin</depends>
+</idea-plugin>

@@ -7,7 +7,6 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import org.jetbrains.uast.*
-import org.jetbrains.uast.visitor.AbstractUastVisitor
 
 class SpringBeanDetector {
 

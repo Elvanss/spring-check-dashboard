@@ -2,14 +2,15 @@ package com.github.elvanss.springcheckdashboard.services.Service
 
 import com.github.elvanss.springcheckdashboard.model.service.ServiceInfo
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
+import com.intellij.psi.PsiManager
 
 class SpringServiceDetector {
 
@@ -65,7 +66,7 @@ class SpringServiceDetector {
 
     private fun findMainClassesInModule(module: Module): List<PsiClass> {
         val project = module.project
-        val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, /*includeTestScope=*/false)
+        val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, /* includeTests = */false)
         val cache = PsiShortNamesCache.getInstance(project)
 
         val nameHints = setOf("Application", "Main", "App", "Server")
@@ -89,32 +90,42 @@ class SpringServiceDetector {
                 m.parameterList.parameters[0].type.canonicalText == "java.lang.String[]"
     }
 
-    private fun detectPort(module: Module): Int? {
+    private fun findFileByName(module: Module, filename: String): PsiFile? {
         val project = module.project
         val scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false)
+        val psiManager = PsiManager.getInstance(project)
 
-        FilenameIndex.getVirtualFilesByName(project, "application.properties", scope).firstOrNull()?.let { vf ->
-            try {
-                VfsUtilCore.loadText(vf).lineSequence().forEach { line ->
-                    val t = line.trim()
-                    if (t.startsWith("#")) return@forEach
-                    val m = Regex("""^server\.port\s*=\s*(\d{2,5})\s*$""").find(t)
-                    if (m != null) return m.groupValues[1].toInt()
+        return FilenameIndex
+            .getAllFilesByExt(project, filename.substringAfterLast('.'), scope)
+            .firstOrNull { it.name == filename }
+            ?.let { psiManager.findFile(it) }
+    }
+
+    private fun detectPort(module: Module): Int? {
+        // application.properties
+        findFileByName(module, "application.properties")?.let { psi ->
+            psi.text.lineSequence().forEach { line ->
+                val t = line.trim()
+                if (!t.startsWith("#")) {
+                    Regex("""^server\.port\s*=\s*(\d{2,5})\s*$""")
+                        .find(t)
+                        ?.groupValues?.get(1)
+                        ?.toInt()
+                        ?.let { return it }
                 }
-            } catch (_: Throwable) {}
+            }
         }
 
-        val yaml = FilenameIndex.getVirtualFilesByName(project, "application.yml", scope).firstOrNull()
-            ?: FilenameIndex.getVirtualFilesByName(project, "application.yaml", scope).firstOrNull()
-        if (yaml != null) {
-            try {
-                val text = VfsUtilCore.loadText(yaml)
-                val rx = Regex("""(?s)server\s*:\s*.*?port\s*:\s*(\d{2,5})""")
-                val m = rx.find(text)
-                if (m != null) return m.groupValues[1].toInt()
-            } catch (_: Throwable) {}
+        // application.yml / application.yaml
+        val ymlPsi = findFileByName(module, "application.yml")
+            ?: findFileByName(module, "application.yaml")
+
+        if (ymlPsi != null) {
+            val rx = Regex("""(?s)server\s*:\s*.*?port\s*:\s*(\d{2,5})""")
+            rx.find(ymlPsi.text)?.groupValues?.get(1)?.toInt()?.let { return it }
         }
 
         return null
     }
+
 }

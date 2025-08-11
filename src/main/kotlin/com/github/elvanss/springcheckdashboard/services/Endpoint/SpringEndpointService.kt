@@ -11,12 +11,4 @@ class SpringEndpointService() {
         endpointsByFile[filePath] = endpoints
         println("Updated endpoints for $filePath: $endpoints")
     }
-
-    fun getAllEndpoints(): List<String> {
-        return endpointsByFile.values.flatten()
-    }
-
-    fun clear() {
-        endpointsByFile.clear()
-    }
 }

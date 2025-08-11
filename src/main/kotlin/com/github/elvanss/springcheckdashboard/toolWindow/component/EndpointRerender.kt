@@ -18,13 +18,11 @@ import javax.swing.tree.DefaultTreeModel
 
 class EndpointRerender {
     companion object {
-
-        /** Wrapper để hiển thị text đẹp mà vẫn giữ EndpointInfo */
-        private data class DisplayEndpoint(val info: EndpointInfo) {
+        data class DisplayEndpoint(val info: EndpointInfo) {
+            fun getEndpointInfo(): EndpointInfo = info
             override fun toString(): String = "[${info.httpMethod}] ${info.path}"
         }
 
-        /** Renderer: gắn icon cho endpoint; controller/module giữ icon mặc định (hoặc đặt nhẹ) */
         private class EndpointTreeRenderer : ColoredTreeCellRenderer() {
             private val endpointIcon: Icon by lazy {
                 try {

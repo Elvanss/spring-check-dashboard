@@ -452,7 +452,7 @@ class SpringDashboardToolWindowFactory : ToolWindowFactory {
         }
 
 
-        miGenAll.addActionListener { generator.generate(project) }
+        miGenAll.addActionListener { ApplicationManager.getApplication().executeOnPooledThread { generator.generate(project) } }
 
         genSmart.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {

@@ -19,7 +19,6 @@ import javax.swing.tree.DefaultTreeModel
 class EndpointRerender {
     companion object {
         data class DisplayEndpoint(val info: EndpointInfo) {
-            fun getEndpointInfo(): EndpointInfo = info
             override fun toString(): String = "[${info.httpMethod}] ${info.path}"
         }
 

@@ -15,6 +15,7 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -34,6 +35,11 @@ import javax.swing.event.TreeModelEvent
 import javax.swing.event.TreeModelListener
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeModel
+import com.intellij.ui.components.JBScrollPane
+
+import java.awt.event.ActionEvent
+import com.intellij.openapi.module.Module
+
 
 class SpringDashboardToolWindowFactory : ToolWindowFactory {
 
@@ -148,7 +154,7 @@ class SpringDashboardToolWindowFactory : ToolWindowFactory {
             override fun mouseReleased(e: MouseEvent) { if (e.isPopupTrigger) mouseClicked(e) }
         })
 
-        // ===================== ENDPOINTS (your current style) =====================
+        // ===================== ENDPOINTS =====================
         val epRootNode = DefaultMutableTreeNode("Spring Endpoints")
         val epTreeModel = DefaultTreeModel(epRootNode)
         val epTree = Tree(epTreeModel)
@@ -213,7 +219,7 @@ class SpringDashboardToolWindowFactory : ToolWindowFactory {
             add(epScroll, BorderLayout.CENTER)
         }
 
-        // ===================== BEANS (your current style) =====================
+        // ===================== BEANS =====================
         val beanRootNode = DefaultMutableTreeNode("Spring Beans")
         val beanTreeModel = DefaultTreeModel(beanRootNode)
         val beanTree = Tree(beanTreeModel)
@@ -274,7 +280,7 @@ class SpringDashboardToolWindowFactory : ToolWindowFactory {
         val content = contentFactory.createContent(mainPanel, "", false)
         toolWindow.contentManager.addContent(content)
 
-        // ===================== Endpoints loading controls (your style) =====================
+        // ===================== Endpoints loading controls =====================
         var epStopGuardTimer: Timer? = null
         var epMinShowTimer: Timer? = null
         var epStartedAt = 0L
@@ -338,7 +344,7 @@ class SpringDashboardToolWindowFactory : ToolWindowFactory {
         epRefreshIdle.addMouseListener(epRefreshClick)
         epRefreshSpinner.addMouseListener(epRefreshClick)
 
-        // ===================== Beans loading controls (your style) =====================
+        // ===================== Beans loading controls =====================
         var beanStopGuardTimer: Timer? = null
         var beanMinShowTimer: Timer? = null
         var beanStartedAt = 0L
@@ -413,24 +419,71 @@ class SpringDashboardToolWindowFactory : ToolWindowFactory {
         genMenu.addSeparator()
         genMenu.add(miGenAll)
 
-        miGenSelected.addActionListener {
+        miGenSelected.addActionListener { _: ActionEvent ->
             val selection = epTree.lastSelectedPathComponent as? DefaultMutableTreeNode
-            if (selection == null) { generator.generate(project); return@addActionListener }
-            val eps = collectEndpointsFromNode(selection)
-            if (eps.isNotEmpty()) generator.generateForList(project, eps, labelForNode(selection))
-            else generator.generate(project)
+            val app = ApplicationManager.getApplication()
+
+            if (selection == null) {
+                app.executeOnPooledThread { generator.generate(project) }
+                return@addActionListener
+            }
+
+            val endpoint: EndpointInfo? = extractEndpointInfo(selection.userObject)
+            val module: Module? = selectedModuleFromNode(project, selection)
+
+            when {
+                endpoint != null -> {
+                    app.executeOnPooledThread { generator.generateSingle(project, endpoint) }
+                }
+                module != null -> {
+                    app.executeOnPooledThread { generator.generateForModule(project, module) }
+                }
+                else -> {
+                    val eps = collectEndpointsFromNode(selection)
+                    if (eps.isNotEmpty()) {
+                        app.executeOnPooledThread {
+                            generator.generateForList(project, eps, labelForNode(selection))
+                        }
+                    } else {
+                        app.executeOnPooledThread { generator.generate(project) }
+                    }
+                }
+            }
         }
-        miGenAll.addActionListener { generator.generate(project) }
+
+
+        miGenAll.addActionListener { ApplicationManager.getApplication().executeOnPooledThread { generator.generate(project) } }
 
         genSmart.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 val selection = epTree.lastSelectedPathComponent as? DefaultMutableTreeNode
-                if (selection == null) { generator.generate(project); return }
-                val eps = collectEndpointsFromNode(selection)
-                if (eps.isNotEmpty()) generator.generateForList(project, eps, labelForNode(selection))
-                else generator.generate(project)
+                val app = ApplicationManager.getApplication()
+
+                if (selection == null) {
+                    app.executeOnPooledThread { generator.generate(project) }
+                    return
+                }
+
+                val endpoint: EndpointInfo? = extractEndpointInfo(selection.userObject)
+                val module: Module? = selectedModuleFromNode(project, selection)
+
+                when {
+                    endpoint != null -> app.executeOnPooledThread { generator.generateSingle(project, endpoint) }
+                    module != null   -> app.executeOnPooledThread { generator.generateForModule(project, module) }
+                    else -> {
+                        val eps = collectEndpointsFromNode(selection)
+                        if (eps.isNotEmpty()) {
+                            app.executeOnPooledThread {
+                                generator.generateForList(project, eps, labelForNode(selection))
+                            }
+                        } else {
+                            app.executeOnPooledThread { generator.generate(project) }
+                        }
+                    }
+                }
             }
         })
+
         val showMenu: (MouseEvent) -> Unit = { genMenu.show(genCaret, 0, genCaret.height) }
         genCaret.addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) = showMenu(e)
@@ -575,4 +628,16 @@ class SpringDashboardToolWindowFactory : ToolWindowFactory {
             }.getOrNull()
         }
     }
+
+    private fun selectedModuleFromNode(project: Project, node: DefaultMutableTreeNode): Module? {
+        // depth: root=1, module=2, controller=3, endpoint=4
+        val depth = node.path.size
+        if (depth == 2) {
+            val name = node.userObject?.toString() ?: return null
+            return ModuleManager.getInstance(project).findModuleByName(name)
+        }
+        return null
+    }
+
+
 }

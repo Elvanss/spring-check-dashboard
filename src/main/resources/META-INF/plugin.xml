@@ -76,4 +76,5 @@
                 text="Generate OpenAPI (SpringCheck)"
                 description="Generate OpenAPI spec from source"/>
     </actions>
+
 </idea-plugin>

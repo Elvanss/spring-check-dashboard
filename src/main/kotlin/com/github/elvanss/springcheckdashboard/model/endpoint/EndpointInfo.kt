@@ -1,4 +1,4 @@
-package com.github.elvanss.springcheckdashboard.model.Endpoint
+package com.github.elvanss.springcheckdashboard.model.endpoint
 
 import com.intellij.psi.PsiElement
 data class EndpointInfo(

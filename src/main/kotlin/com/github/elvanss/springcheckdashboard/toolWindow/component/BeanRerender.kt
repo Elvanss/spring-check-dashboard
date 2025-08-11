@@ -1,7 +1,7 @@
 package com.github.elvanss.springcheckdashboard.toolWindow.component
 
-import com.github.elvanss.springcheckdashboard.model.Bean.BeanInfo
-import com.github.elvanss.springcheckdashboard.services.Bean.SpringBeanDetector
+import com.github.elvanss.springcheckdashboard.model.bean.BeanInfo
+import com.github.elvanss.springcheckdashboard.services.bean.SpringBeanDetector
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project

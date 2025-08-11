@@ -1,3 +1,5 @@
 <idea-plugin>
     <depends>org.jetbrains.kotlin</depends>
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    </extensions>
 </idea-plugin>

@@ -1,7 +1,7 @@
 package com.github.elvanss.springcheckdashboard.toolWindow.component
 
-import com.github.elvanss.springcheckdashboard.model.Bean.BeanInfo
-import com.github.elvanss.springcheckdashboard.services.Bean.SpringBeanDetector
+import com.github.elvanss.springcheckdashboard.model.bean.BeanInfo
+import com.github.elvanss.springcheckdashboard.services.bean.SpringBeanDetector
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -33,7 +33,6 @@ class BeanRerender {
                 null
             }
 
-            // Icons (đặt ở /resources/icons/)
             private val iconRoot: Icon? by lazy { UIManager.getIcon("Tree.openIcon") }
             private val iconModule: Icon? by lazy { UIManager.getIcon("Tree.closedIcon") }
 
@@ -64,6 +63,7 @@ class BeanRerender {
                 when {
                     uo is DisplayBean -> {
                         icon = when (uo.info.beanType.lowercase()) {
+                            "springbootaplication" -> iconDefault
                             "component" -> iconComponent
                             "service" -> iconService
                             "repository" -> iconRepository
@@ -92,7 +92,6 @@ class BeanRerender {
             val rootNode = DefaultMutableTreeNode("Spring Beans")
             val app = ApplicationManager.getApplication()
 
-            // Gắn renderer (1 lần)
             tree.cellRenderer = BeanTreeRenderer()
 
             app.executeOnPooledThread {

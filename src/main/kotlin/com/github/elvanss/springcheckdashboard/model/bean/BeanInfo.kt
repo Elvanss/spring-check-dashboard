@@ -1,4 +1,4 @@
-package com.github.elvanss.springcheckdashboard.model.Bean
+package com.github.elvanss.springcheckdashboard.model.bean
 
 import com.intellij.psi.PsiElement
 

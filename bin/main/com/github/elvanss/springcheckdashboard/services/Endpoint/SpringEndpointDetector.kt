@@ -1,15 +1,13 @@
 package com.github.elvanss.springcheckdashboard.services.endpoint
 
-import com.github.elvanss.springcheckdashboard.model.Endpoint.ControllerInfo
-import com.github.elvanss.springcheckdashboard.model.Endpoint.EndpointInfo
+import com.github.elvanss.springcheckdashboard.model.endpoint.ControllerInfo
+import com.github.elvanss.springcheckdashboard.model.endpoint.EndpointInfo
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import org.jetbrains.uast.*
-import org.jetbrains.uast.visitor.AbstractUastVisitor
-
 class SpringEndpointDetector {
 
     private val REQ_MAPPING = "org.springframework.web.bind.annotation.RequestMapping"
@@ -30,11 +28,9 @@ class SpringEndpointDetector {
         val allScope = GlobalSearchScope.allScope(project)
         val facade = JavaPsiFacade.getInstance(project)
 
-        // Tìm class annotation trong classpath
         val restCtrlAnno = facade.findClass(REST_CONTROLLER, allScope)
         val ctrlAnno = facade.findClass(CONTROLLER, allScope)
 
-        // Lấy tất cả class (Java + Kotlin light classes) có @RestController/@Controller trong module
         val psiClasses = buildList<PsiClass> {
             if (restCtrlAnno != null) {
                 addAll(AnnotatedElementsSearch.searchPsiClasses(restCtrlAnno, moduleScope).findAll())
@@ -66,8 +62,6 @@ class SpringEndpointDetector {
 
         return results
     }
-
-    /* --------- phần còn lại giữ nguyên như bản UAST đã fix UastLiteralUtils --------- */
 
     private fun endpointsFromMethod(uMethod: UMethod, classPrefixes: List<String>): List<EndpointInfo> {
         val out = mutableListOf<EndpointInfo>()

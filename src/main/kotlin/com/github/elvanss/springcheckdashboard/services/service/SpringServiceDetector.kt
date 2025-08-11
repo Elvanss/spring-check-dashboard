@@ -1,4 +1,4 @@
-package com.github.elvanss.springcheckdashboard.services.Service
+package com.github.elvanss.springcheckdashboard.services.service
 
 import com.github.elvanss.springcheckdashboard.model.service.ServiceInfo
 import com.intellij.openapi.module.Module

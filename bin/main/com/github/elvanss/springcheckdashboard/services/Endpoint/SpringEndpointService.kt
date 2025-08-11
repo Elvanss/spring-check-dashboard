@@ -1,4 +1,4 @@
-package com.github.elvanss.springcheckdashboard.services.Endpoint
+package com.github.elvanss.springcheckdashboard.services.endpoint
 
 import com.intellij.openapi.components.Service
 
@@ -10,13 +10,5 @@ class SpringEndpointService() {
     fun updateEndpoints(filePath: String, endpoints: List<String>) {
         endpointsByFile[filePath] = endpoints
         println("Updated endpoints for $filePath: $endpoints")
-    }
-
-    fun getAllEndpoints(): List<String> {
-        return endpointsByFile.values.flatten()
-    }
-
-    fun clear() {
-        endpointsByFile.clear()
     }
 }

@@ -1,6 +1,6 @@
 package com.github.elvanss.springcheckdashboard.listener
 
-import com.github.elvanss.springcheckdashboard.services.Endpoint.SpringEndpointService
+import com.github.elvanss.springcheckdashboard.services.endpoint.SpringEndpointService
 import com.intellij.openapi.components.service
 import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil

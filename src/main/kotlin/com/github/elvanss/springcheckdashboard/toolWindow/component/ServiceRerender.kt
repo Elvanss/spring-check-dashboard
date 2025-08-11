@@ -1,7 +1,7 @@
 package com.github.elvanss.springcheckdashboard.toolWindow.component
 
 import com.github.elvanss.springcheckdashboard.model.service.ServiceInfo
-import com.github.elvanss.springcheckdashboard.services.Service.SpringServiceDetector
+import com.github.elvanss.springcheckdashboard.services.service.SpringServiceDetector
 
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.icons.AllIcons

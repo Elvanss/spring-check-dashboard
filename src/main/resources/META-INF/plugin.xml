@@ -6,8 +6,7 @@
 
     <vendor email="duy.elvans12@gmail.com" url="https://github.com/elvanss">elvanss</vendor>
 
-    <!-- Minimum IDE version (231 = 2023.1). Adjust as needed. -->
-    <idea-version since-build="231"/>
+    <idea-version since-build="243" until-build="251.*"/>
 
     <!-- Modules / dependencies -->
     <depends>com.intellij.modules.platform</depends>

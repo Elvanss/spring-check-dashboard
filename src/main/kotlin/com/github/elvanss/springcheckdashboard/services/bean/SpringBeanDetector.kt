@@ -1,6 +1,6 @@
-package com.github.elvanss.springcheckdashboard.services.Bean
+package com.github.elvanss.springcheckdashboard.services.bean
 
-import com.github.elvanss.springcheckdashboard.model.Bean.BeanInfo
+import com.github.elvanss.springcheckdashboard.model.bean.BeanInfo
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass

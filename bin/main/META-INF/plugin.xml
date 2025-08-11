@@ -1,37 +1,79 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.elvanss.springcheckdashboard</id>
-    <name>spring-check-dashboard</name>
-    <vendor>elvanss</vendor>
+    <name>Spring Boot Dashboard</name>
+    <version>1.0.0</version>
 
+    <vendor email="duy.elvans12@gmail.com" url="https://github.com/elvanss">elvanss</vendor>
+
+    <idea-version since-build="243" until-build="251.*"/>
+
+    <!-- Modules / dependencies -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
     <depends optional="true" config-file="kotlin-uast.xml">org.jetbrains.kotlin</depends>
 
+    <!-- Marketplace description (HTML allowed) -->
+    <description><![CDATA[
+      <h2>Spring Boot Dashboard</h2>
+      <p>An IntelliJ tool window for Spring projects: explore <b>Endpoints</b> and <b>Beans</b>,
+      detect <b>Services</b> (main classes) with port, and generate <b>OpenAPI</b> on the fly.</p>
 
+      <h3>Features</h3>
+      <ul>
+        <li><b>Endpoint Explorer</b>: list controllers/methods and jump to source.</li>
+        <li><b>Bean Explorer</b>: view Spring beans, including <code>@Configuration</code>/<code>@Bean</code> methods.</li>
+        <li><b>Services</b>: auto-detect Spring Boot modules, show <code>server.port</code>,
+            and <i>Run / Debug / Stop</i> from a context menu or double-click.</li>
+        <li><b>Generate OpenAPI</b>: produce JSON for the whole project, a controller, or a single endpoint;
+            opens as a scratch file (nothing written to disk).</li>
+        <li><b>Refresh with spinner</b>, compact UI in a right-side Tool Window.</li>
+      </ul>
+
+      <h3>Usage</h3>
+      <ol>
+        <li>Open <b>View → Tool Windows → Spring Dashboard</b>.</li>
+        <li><b>Services</b>: right-click to Run/Debug/Stop; double-click toggles Run/Stop.</li>
+        <li><b>Endpoints</b>: select a node → click <b>Generate</b> or the <b>▾</b> for scope options.</li>
+        <li><b>Beans</b>: click an item to navigate to its definition.</li>
+      </ol>
+
+      <p><i>Note:</i> Port detection reads <code>application.properties/yml</code> (best effort).
+      Adjust <code>since-build</code> to match your target IDE platform if needed.</p>
+    ]]></description>
+
+    <!-- Release notes -->
+    <change-notes><![CDATA[
+      <ul>
+        <li><b>1.0.0</b>: Initial release — Endpoints/Beans explorers, Services (Run/Debug/Stop),
+            OpenAPI generation, and refresh spinners.</li>
+      </ul>
+    ]]></change-notes>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
+        <!-- Notification group (optional) -->
         <notificationGroup
                 id="SpringCheck Notifications"
                 displayType="BALLOON"
                 isLogByDefault="true"/>
+
         <toolWindow
                 factoryClass="com.github.elvanss.springcheckdashboard.toolWindow.SpringDashboardToolWindowFactory"
                 id="Spring Dashboard"
                 anchor="right"
                 icon="/icons/spring-endpoint-icon.svg"/>
+
         <postStartupActivity implementation="com.github.elvanss.springcheckdashboard.startup.MyProjectActivity" />
     </extensions>
 
-    <!-- (Optional) Global actions -->
+    <!-- Optional global action -->
     <actions>
         <action id="SpringCheck.GenerateOpenApi"
                 class="com.github.elvanss.springcheckdashboard.actions.GenerateOpenApiAction"
                 text="Generate OpenAPI (SpringCheck)"
                 description="Generate OpenAPI spec from source"/>
     </actions>
-
 
 </idea-plugin>

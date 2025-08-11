@@ -1,7 +1,7 @@
 package com.github.elvanss.springcheckdashboard.services.endpoint
 
-import com.github.elvanss.springcheckdashboard.model.Endpoint.ControllerInfo
-import com.github.elvanss.springcheckdashboard.model.Endpoint.EndpointInfo
+import com.github.elvanss.springcheckdashboard.model.endpoint.ControllerInfo
+import com.github.elvanss.springcheckdashboard.model.endpoint.EndpointInfo
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass

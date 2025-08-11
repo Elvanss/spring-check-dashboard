@@ -1,6 +1,6 @@
 package com.github.elvanss.springcheckdashboard.openapi
 
-import com.github.elvanss.springcheckdashboard.model.Endpoint.EndpointInfo
+import com.github.elvanss.springcheckdashboard.model.endpoint.EndpointInfo
 import com.github.elvanss.springcheckdashboard.services.endpoint.SpringEndpointDetector
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
@@ -17,6 +17,7 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.collections.LinkedHashMap
 
+@Suppress("UNCHECKED_CAST")
 class OpenApiGenerator {
 
     /** Generate ALL endpoints in project */
@@ -55,11 +56,17 @@ class OpenApiGenerator {
             val resolveScope = GlobalSearchScope.allScope(project)
 
             val openapi = newOpenApiSkeleton(project)
-            val paths = openapi["paths"] as LinkedHashMap<String, Any>
-            val schemas = (openapi["components"] as Map<*, *>)["schemas"] as LinkedHashMap<String, Any>
+            val paths = (openapi["paths"] as? LinkedHashMap<String, Any>)
+                ?: LinkedHashMap<String, Any>().also { openapi["paths"] = it }
+
+            val components = (openapi["components"] as? MutableMap<String, Any>)
+                ?: linkedMapOf<String, Any>().also { openapi["components"] = it }
+
+            val schemas = (components["schemas"] as? LinkedHashMap<String, Any>)
+                ?: LinkedHashMap<String, Any>().also { components["schemas"] = it }
 
             endpoints.forEach { ep ->
-                val pathItem = paths.getOrPut(ep.path) { LinkedHashMap<String, Any>() } as LinkedHashMap<String, Any>
+                val pathItem = (paths.getOrPut(ep.path) { LinkedHashMap<String, Any>() } as LinkedHashMap<String, Any>)
                 pathItem[ep.httpMethod.lowercase(Locale.ROOT)] =
                     buildOperation(ep, schemas, psiManager, resolveScope)
             }
@@ -143,7 +150,7 @@ class OpenApiGenerator {
             "responses" to responses
         )
         if (params.isNotEmpty()) op["parameters"] = params
-        if (requestBody != null) op["requestBody"] = requestBody!!
+        if (requestBody != null) op["requestBody"] = requestBody
         return op
     }
 

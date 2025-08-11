@@ -1,6 +1,6 @@
 package com.github.elvanss.springcheckdashboard.toolWindow
 
-import com.github.elvanss.springcheckdashboard.model.Endpoint.EndpointInfo
+import com.github.elvanss.springcheckdashboard.model.endpoint.EndpointInfo
 import com.github.elvanss.springcheckdashboard.model.service.ServiceInfo
 import com.github.elvanss.springcheckdashboard.openapi.OpenApiGenerator
 import com.github.elvanss.springcheckdashboard.toolWindow.component.BeanRerender
@@ -50,7 +50,7 @@ class SpringDashboardToolWindowFactory : ToolWindowFactory {
         val svcRootNode = DefaultMutableTreeNode("Services")
         val svcTreeModel = DefaultTreeModel(svcRootNode)
         val svcTree = Tree(svcTreeModel)
-        val svcScroll = JScrollPane(svcTree)
+        val svcScroll = JBScrollPane(svcTree)
 
         val svcTitle = JLabel("Services").apply {
             font = font.deriveFont(Font.BOLD, 12f)
@@ -158,7 +158,7 @@ class SpringDashboardToolWindowFactory : ToolWindowFactory {
         val epRootNode = DefaultMutableTreeNode("Spring Endpoints")
         val epTreeModel = DefaultTreeModel(epRootNode)
         val epTree = Tree(epTreeModel)
-        val epScroll = JScrollPane(epTree)
+        val epScroll = JBScrollPane(epTree)
 
         val epTitle = JLabel("Endpoints").apply {
             font = font.deriveFont(Font.BOLD, 12f)
@@ -223,7 +223,7 @@ class SpringDashboardToolWindowFactory : ToolWindowFactory {
         val beanRootNode = DefaultMutableTreeNode("Spring Beans")
         val beanTreeModel = DefaultTreeModel(beanRootNode)
         val beanTree = Tree(beanTreeModel)
-        val beanScroll = JScrollPane(beanTree)
+        val beanScroll = JBScrollPane(beanTree)
 
         val beanTitle = JLabel("Beans").apply {
             font = font.deriveFont(Font.BOLD, 12f)

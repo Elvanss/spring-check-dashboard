@@ -1,6 +1,6 @@
 package com.github.elvanss.springcheckdashboard.openapi
 
-import com.github.elvanss.springcheckdashboard.model.Endpoint.EndpointInfo
+import com.github.elvanss.springcheckdashboard.model.endpoint.EndpointInfo
 import com.github.elvanss.springcheckdashboard.services.endpoint.SpringEndpointDetector
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType

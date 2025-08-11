@@ -1,4 +1,4 @@
-package com.github.elvanss.springcheckdashboard.model.Endpoint
+package com.github.elvanss.springcheckdashboard.model.endpoint
 
 data class ControllerInfo (
     val moduleName: String,

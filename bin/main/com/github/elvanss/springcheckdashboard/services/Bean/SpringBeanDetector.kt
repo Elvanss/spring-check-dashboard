@@ -1,13 +1,12 @@
-package com.github.elvanss.springcheckdashboard.services.Bean
+package com.github.elvanss.springcheckdashboard.services.bean
 
-import com.github.elvanss.springcheckdashboard.model.Bean.BeanInfo
+import com.github.elvanss.springcheckdashboard.model.bean.BeanInfo
 import com.intellij.openapi.module.Module
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import org.jetbrains.uast.*
-import org.jetbrains.uast.visitor.AbstractUastVisitor
 
 class SpringBeanDetector {
 
@@ -17,7 +16,9 @@ class SpringBeanDetector {
         "org.springframework.stereotype.Repository",
         "org.springframework.web.bind.annotation.RestController",
         "org.springframework.stereotype.Controller",
-        "org.springframework.context.annotation.Configuration"
+        "org.springframework.context.annotation.Configuration",
+        "org.springframework.boot.autoconfigure.SpringBootApplication"
+
     )
     private val CONFIGURATION = "org.springframework.context.annotation.Configuration"
     private val BEAN_METHOD = "org.springframework.context.annotation.Bean"
@@ -28,7 +29,6 @@ class SpringBeanDetector {
         val allScope = GlobalSearchScope.allScope(project)
         val facade = JavaPsiFacade.getInstance(project)
 
-        // 1) Tìm tất cả PsiClass trong module có 1 trong các bean annotations
         val classes: List<PsiClass> = buildList {
             BEAN_ANNOS.forEach { fqn ->
                 val anno = facade.findClass(fqn, allScope) ?: return@forEach
@@ -38,11 +38,9 @@ class SpringBeanDetector {
 
         val out = mutableListOf<BeanInfo>()
 
-        // 2) Cho mỗi class: tạo BeanInfo cho chính class + nếu là @Configuration thì quét @Bean methods (UAST)
         classes.forEach { psiClass ->
             val uClass = psiClass.toUElement(UClass::class.java)
 
-            // 2.1 Bean cho chính class (Component/Service/Repository/Controller/RestController/Configuration)
             val beanType = firstMatchingAnnotationShortName(psiClass, BEAN_ANNOS)
             out += BeanInfo(
                 beanName = psiClass.name ?: "UnknownBean",
@@ -50,7 +48,6 @@ class SpringBeanDetector {
                 targetElement = psiClass.navigationElement
             )
 
-            // 2.2 Nếu class là @Configuration → lấy @Bean methods (qua UAST để hỗ trợ Kotlin)
             val isConfiguration = hasAnnotation(psiClass, CONFIGURATION) ||
                     (uClass?.uAnnotations?.any { it.qualifiedName == CONFIGURATION } == true)
 

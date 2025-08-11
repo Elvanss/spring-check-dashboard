@@ -1,6 +1,6 @@
 package com.github.elvanss.springcheckdashboard.toolWindow.component
 
-import com.github.elvanss.springcheckdashboard.model.Endpoint.EndpointInfo
+import com.github.elvanss.springcheckdashboard.model.endpoint.EndpointInfo
 import com.github.elvanss.springcheckdashboard.services.endpoint.SpringEndpointDetector
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleManager

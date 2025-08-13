@@ -11,36 +11,13 @@
     <!-- Modules / dependencies -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
-    <depends optional="true" config-file="kotlin-uast.xml">org.jetbrains.kotlin</depends>
+    <depends config-file="kotlin-uast.xml">org.jetbrains.kotlin</depends>
 
     <!-- Marketplace description (HTML allowed) -->
-    <description><![CDATA[
-      <h2>Spring Boot Dashboard</h2>
-      <p>An IntelliJ tool window for Spring projects: explore <b>Endpoints</b> and <b>Beans</b>,
-      detect <b>Services</b> (main classes) with port, and generate <b>OpenAPI</b> on the fly.</p>
+    <description>
+        Spring Boot Dashboard – IntelliJ tool window for Spring projects: explore Endpoints, Beans, detect Services with port, and generate OpenAPI.
+    </description>
 
-      <h3>Features</h3>
-      <ul>
-        <li><b>Endpoint Explorer</b>: list controllers/methods and jump to source.</li>
-        <li><b>Bean Explorer</b>: view Spring beans, including <code>@Configuration</code>/<code>@Bean</code> methods.</li>
-        <li><b>Services</b>: auto-detect Spring Boot modules, show <code>server.port</code>,
-            and <i>Run / Debug / Stop</i> from a context menu or double-click.</li>
-        <li><b>Generate OpenAPI</b>: produce JSON for the whole project, a controller, or a single endpoint;
-            opens as a scratch file (nothing written to disk).</li>
-        <li><b>Refresh with spinner</b>, compact UI in a right-side Tool Window.</li>
-      </ul>
-
-      <h3>Usage</h3>
-      <ol>
-        <li>Open <b>View → Tool Windows → Spring Dashboard</b>.</li>
-        <li><b>Services</b>: right-click to Run/Debug/Stop; double-click toggles Run/Stop.</li>
-        <li><b>Endpoints</b>: select a node → click <b>Generate</b> or the <b>▾</b> for scope options.</li>
-        <li><b>Beans</b>: click an item to navigate to its definition.</li>
-      </ol>
-
-      <p><i>Note:</i> Port detection reads <code>application.properties/yml</code> (best effort).
-      Adjust <code>since-build</code> to match your target IDE platform if needed.</p>
-    ]]></description>
 
     <!-- Release notes -->
     <change-notes><![CDATA[
@@ -62,12 +39,10 @@
         <toolWindow
                 factoryClass="com.github.elvanss.springcheckdashboard.toolWindow.SpringDashboardToolWindowFactory"
                 id="Spring Dashboard"
-                anchor="right"
                 icon="/icons/spring-endpoint-icon.svg"/>
 
         <postStartupActivity implementation="com.github.elvanss.springcheckdashboard.startup.MyProjectActivity" />
     </extensions>
-
     <!-- Optional global action -->
     <actions>
         <action id="SpringCheck.GenerateOpenApi"

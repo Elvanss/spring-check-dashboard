@@ -11,7 +11,7 @@
     <!-- Modules / dependencies -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
-    <depends optional="true" config-file="kotlin-uast.xml">org.jetbrains.kotlin</depends>
+    <depends config-file="kotlin-uast.xml">org.jetbrains.kotlin</depends>
 
     <!-- Marketplace description (HTML allowed) -->
     <description><![CDATA[
@@ -62,12 +62,10 @@
         <toolWindow
                 factoryClass="com.github.elvanss.springcheckdashboard.toolWindow.SpringDashboardToolWindowFactory"
                 id="Spring Dashboard"
-                anchor="right"
                 icon="/icons/spring-endpoint-icon.svg"/>
 
         <postStartupActivity implementation="com.github.elvanss.springcheckdashboard.startup.MyProjectActivity" />
     </extensions>
-
     <!-- Optional global action -->
     <actions>
         <action id="SpringCheck.GenerateOpenApi"
